@@ -658,7 +658,7 @@ export function Module4View() {
           <TextAnswerInput
             questionId="ar_b_q_execution_bridge"
             module="m4"
-            label="Define two practical trigger points that would make Heron abandon the B-cure path and pivot to another resolution route. Explain how each trigger would affect expected returns."
+            label="Define two adverse scenarios or market changes that would make Heron abandon the B-cure path and pivot to another resolution route. Explain how each would affect expected returns."
             rows={5}
           />
         </QuestionBlock>

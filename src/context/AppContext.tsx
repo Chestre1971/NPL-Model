@@ -149,8 +149,26 @@ const AppContext = createContext<AppContextValue | null>(null);
 const EMPTY_MODULE = { completed: false, locked: false, answers: {}, textAnswers: {}, assumptions: {} };
 const ASSIGNMENT_ID = 'npl_model_2026_q1';
 
+function createEmptyState(): AppState {
+  return {
+    session: null,
+    modules: {
+      m0: { ...EMPTY_MODULE },
+      m1: { ...EMPTY_MODULE },
+      m1b: { ...EMPTY_MODULE },
+      m2: { ...EMPTY_MODULE },
+      m3: { ...EMPTY_MODULE },
+      m_enf: { ...EMPTY_MODULE },
+      m4: { ...EMPTY_MODULE },
+      m5: { ...EMPTY_MODULE },
+      m_ic: { ...EMPTY_MODULE },
+    },
+    loanOverrides: {},
+  };
+}
+
 function normalizeStateShape(raw: AppState): AppState {
-  const def = loadState();
+  const def = createEmptyState();
   return {
     ...def,
     ...raw,
@@ -224,19 +242,7 @@ function reducer(state: AppState, action: Action): AppState {
     }
     case 'HYDRATE_STATE': {
       const incoming = action.payload;
-      const merged: AppState = {
-        ...state,
-        ...incoming,
-        modules: {
-          ...state.modules,
-          ...(incoming.modules ?? {}),
-        },
-        loanOverrides: {
-          ...state.loanOverrides,
-          ...(incoming.loanOverrides ?? {}),
-        },
-      };
-      return merged;
+      return normalizeStateShape(incoming);
     }
     case 'LOGIN': {
       const now = new Date().toISOString();
@@ -254,7 +260,7 @@ function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         session: null,
-        modules: loadState().modules,
+        modules: createEmptyState().modules,
         loanOverrides: {},
       };
 
@@ -416,8 +422,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (remoteState?.state_json) {
           const normalized = normalizeStateShape(remoteState.state_json as AppState);
           dispatch({ type: 'HYDRATE_STATE', payload: normalized });
-          dispatch({ type: 'SET_SESSION', payload: { studentId, name: displayName } });
+        } else {
+          // New user (or no saved remote state): start from clean defaults.
+          dispatch({ type: 'HYDRATE_STATE', payload: createEmptyState() });
         }
+        dispatch({ type: 'SET_SESSION', payload: { studentId, name: displayName } });
         hydratedUserRef.current = user.id;
       }
 

@@ -142,9 +142,6 @@ export function LoginPage() {
           </button>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-slate-100 text-center">
-          <a href="/admin" className="text-xs text-slate-400 hover:text-slate-600">Professor Dashboard {'->'}</a>
-        </div>
       </div>
     </div>
   );
