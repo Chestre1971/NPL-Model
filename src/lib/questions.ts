@@ -66,9 +66,9 @@ export const QUESTION_REGISTRY: Record<string, QuestionDef> = {
   },
   pc_q_worst_cohort: {
     id: 'pc_q_worst_cohort', module: 'm1b', type: 'text',
-    label: 'Worst risk-state cohort and why it deserves deeper discount',
-    modelAnswer: 'Worst cohort combines high expected shortfall with slower/costly resolution, causing lower PV and greater uncertainty, requiring deeper discount.',
-    rubric: 'Award marks for: coherent cohort selection; severity + timing/cost logic; discount implication.',
+    label: 'Cohort (risk and state) with largest recovery risk and why',
+    modelAnswer: 'Strong answer names one Risk x State cohort from the cross-tab and explains that recovery risk is highest where collateral shortfall is deepest and resolution is slower or costlier, which lowers net present recovery and increases uncertainty.',
+    rubric: 'Award marks for: specific Risk x State cohort named; recovery-risk mechanism (shortfall and/or timing/cost) explained; clear impact on recovery value/uncertainty.',
   },
 
   // Performing Baseline (m2)
@@ -221,8 +221,8 @@ export const QUESTION_REGISTRY: Record<string, QuestionDef> = {
 };
 
 export const MODULE_QUESTION_ORDER: Record<string, string[]> = {
-  m0: ['db_q_discount_mechanism', 'db_q_round1_limits'],
-  m1: ['lt_q_avg_tail', 'lt_q_c_to_d_impact', 'sum_q_largest_step', 'sum_q_single_irr_risk', 'sum_q_sensitivity_first'],
+  m0: [],
+  m1: ['sum_q_largest_step', 'sum_q_single_irr_risk', 'sum_q_sensitivity_first'],
   m1b: ['pc_q_avg_not_lowrisk', 'pc_q_worst_cohort'],
   m2: ['pb_q_upper_bound', 'pb_q_timing_vs_irr'],
   m3: ['ra_q_floor_definition', 'ra_q_worse_than_floor'],

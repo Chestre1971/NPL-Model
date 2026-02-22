@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { BookOpen, BrainCircuit, Check, CheckCircle2, Copy, Download, RefreshCw, Save, Users, X } from 'lucide-react';
+import { BookOpen, BrainCircuit, Check, CheckCircle2, Copy, Download, RefreshCw, Save, Trash2, Users, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { loadAllStudentRecords, type StudentRecord } from '../lib/storage';
@@ -9,6 +9,7 @@ import { buildGradingPrompt } from '../lib/gradingPrompt';
 interface StudentAdminRecord extends StudentRecord {
   userId: string;
   email: string;
+  updatedAt: string;
 }
 
 interface SubmissionRow {
@@ -18,6 +19,8 @@ interface SubmissionRow {
   question_id: string;
   answer_text: string | null;
   answer_numeric: string | null;
+  submitted_at: string;
+  updated_at: string;
 }
 
 interface ScoreRow {
@@ -99,6 +102,7 @@ export function AdminPage() {
   const [loadError, setLoadError] = useState('');
   const [savingSubmissionId, setSavingSubmissionId] = useState<string | null>(null);
   const [savingLockModule, setSavingLockModule] = useState<string | null>(null);
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const [promptText, setPromptText] = useState('');
   const [showPrompt, setShowPrompt] = useState(false);
 
@@ -133,6 +137,7 @@ export function AdminPage() {
         ...r,
         userId: r.session.studentId || `local-${idx}`,
         email: r.session.studentId || '',
+        updatedAt: r.session.lastActive || r.session.startedAt || new Date().toISOString(),
       }));
       setRecords(fallback);
       setSubmissions([]);
@@ -145,7 +150,7 @@ export function AdminPage() {
     const [{ data: states, error: stateErr }, { data: profiles, error: profileErr }, { data: subs, error: subsErr }, { data: scr, error: scoreErr }] = await Promise.all([
       supabase.from('student_states').select('user_id, state_json, updated_at').order('updated_at', { ascending: false }),
       supabase.from('profiles').select('id, email, full_name'),
-      supabase.from('submissions').select('id, user_id, module_id, question_id, answer_text, answer_numeric'),
+      supabase.from('submissions').select('id, user_id, module_id, question_id, answer_text, answer_numeric, submitted_at, updated_at'),
       supabase.from('scores').select('id, submission_id, points_awarded, points_max, rubric_level, feedback'),
     ]);
 
@@ -163,6 +168,7 @@ export function AdminPage() {
       return {
         userId: row.user_id,
         email: profile?.email ?? '',
+        updatedAt: row.updated_at ?? new Date().toISOString(),
         session: payload.session ?? {
           studentId: profile?.email ?? row.user_id,
           name: profile?.full_name?.trim() || profile?.email?.split('@')[0] || 'Student',
@@ -311,6 +317,47 @@ export function AdminPage() {
     }));
   }, []);
 
+  const deleteStudentRun = useCallback(async (student: StudentAdminRecord) => {
+    const ok = window.confirm(`Delete test run for ${student.session.name} (${student.email || student.session.studentId})?\n\nThis deletes saved state, submissions, and scores for this student.`);
+    if (!ok) return;
+
+    if (!supabase) {
+      setRecords(prev => prev.filter(r => r.userId !== student.userId));
+      if (selectedUserId === student.userId) setSelectedUserId(null);
+      return;
+    }
+
+    setDeletingUserId(student.userId);
+    setLoadError('');
+
+    const { error: subErr } = await supabase
+      .from('submissions')
+      .delete()
+      .eq('user_id', student.userId);
+    if (subErr) {
+      setLoadError(subErr.message);
+      setDeletingUserId(null);
+      return;
+    }
+
+    const { error: stateErr } = await supabase
+      .from('student_states')
+      .delete()
+      .eq('user_id', student.userId);
+    if (stateErr) {
+      setLoadError(stateErr.message);
+      setDeletingUserId(null);
+      return;
+    }
+
+    setRecords(prev => prev.filter(r => r.userId !== student.userId));
+    setSubmissions(prev => prev.filter(s => s.user_id !== student.userId));
+    const removedSubmissionIds = new Set(submissions.filter(s => s.user_id === student.userId).map(s => s.id));
+    setScores(prev => prev.filter(s => !removedSubmissionIds.has(s.submission_id)));
+    if (selectedUserId === student.userId) setSelectedUserId(null);
+    setDeletingUserId(null);
+  }, [selectedUserId, submissions]);
+
   const studentModuleStats = useMemo(() => {
     const out: Record<string, { awarded: number; max: number; graded: number; total: number; status: 'graded' | 'ungraded' | 'not_started' }> = {};
     if (!selectedStudent) return out;
@@ -435,15 +482,28 @@ export function AdminPage() {
                 const scored = rows.filter(s => scoresBySubmission.has(s.id));
                 const awarded = scored.reduce((sum, s) => sum + (scoresBySubmission.get(s.id)?.points_awarded ?? 0), 0);
                 const max = scored.reduce((sum, s) => sum + (scoresBySubmission.get(s.id)?.points_max ?? 0), 0);
+                const latestSubmission = rows.length > 0
+                  ? rows.reduce((a, b) => (new Date(a.updated_at).getTime() > new Date(b.updated_at).getTime() ? a : b))
+                  : null;
                 return (
-                  <button
+                  <div
                     key={r.userId}
-                    onClick={() => setSelectedUserId(r.userId)}
                     className={`w-full text-left p-3 rounded-xl border ${selectedUserId === r.userId ? 'border-blue-400 bg-blue-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-sm text-slate-900">{r.session.name}</span>
-                      <span className="text-xs text-slate-400">{r.email || r.session.studentId}</span>
+                    <div className="flex items-center justify-between mb-1 gap-2">
+                      <button className="text-left min-w-0 flex-1" onClick={() => setSelectedUserId(r.userId)}>
+                        <span className="font-medium text-sm text-slate-900">{r.session.name}</span>
+                        <span className="block text-xs text-slate-400 truncate">{r.email || r.session.studentId}</span>
+                      </button>
+                      <button
+                        onClick={() => void deleteStudentRun(r)}
+                        disabled={deletingUserId === r.userId}
+                        title="Delete student test run"
+                        className="inline-flex items-center gap-1 text-xs px-2 py-1 border border-red-200 rounded text-red-600 hover:text-red-700 hover:bg-red-50 disabled:opacity-50"
+                      >
+                        <Trash2 size={12} />
+                        {deletingUserId === r.userId ? 'Deleting...' : 'Delete'}
+                      </button>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
                       {COMPLETION_MODULES.map(m => (
@@ -454,7 +514,15 @@ export function AdminPage() {
                       ))}
                     </div>
                     <p className="text-xs text-slate-500">Scored: {awarded.toFixed(1)} / {max.toFixed(1)}</p>
-                  </button>
+                    <p className="text-xs text-slate-400">
+                      Last state update: {new Date(r.updatedAt).toLocaleString()}
+                    </p>
+                    {latestSubmission && (
+                      <p className="text-xs text-slate-400">
+                        Last submitted: {new Date(latestSubmission.submitted_at).toLocaleString()} | Last submission update: {new Date(latestSubmission.updated_at).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -469,6 +537,7 @@ export function AdminPage() {
                   <div>
                     <h2 className="text-lg font-bold text-slate-900">{selectedStudent.session.name}</h2>
                     <p className="text-sm text-slate-500">{selectedStudent.email || selectedStudent.session.studentId}</p>
+                    <p className="text-xs text-slate-400">State updated: {new Date(selectedStudent.updatedAt).toLocaleString()}</p>
                   </div>
                   <button onClick={() => openPrompt(selectedStudent)} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold rounded-lg">
                     <BrainCircuit size={13} /> Grade with AI
@@ -533,6 +602,9 @@ export function AdminPage() {
                         return (
                           <div key={submission.id} className="mb-3 border border-slate-100 rounded p-2">
                             <p className="text-xs font-medium text-slate-700 mb-1">{def?.label ?? qId}</p>
+                            <p className="text-[11px] text-slate-400 mb-1">
+                              Submitted: {new Date(submission.submitted_at).toLocaleString()} | Updated: {new Date(submission.updated_at).toLocaleString()}
+                            </p>
                             <p className="text-xs text-slate-700 bg-slate-50 border border-slate-100 rounded p-2 whitespace-pre-wrap mb-2">{answer || '(no answer)'}</p>
 
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-start">

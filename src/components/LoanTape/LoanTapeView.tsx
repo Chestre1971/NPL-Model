@@ -15,8 +15,6 @@ import { fmt } from '../../lib/format';
 import { useApp } from '../../context/AppContext';
 import { ChevronUp, ChevronDown, ChevronsUpDown, Search, Pencil, RotateCcw, Check, X } from 'lucide-react';
 import { PageShell } from '../shared/PageShell';
-import { TextAnswerInput } from '../shared/AnswerInput';
-import { QuestionBlock } from '../shared/QuestionBlock';
 
 const helper = createColumnHelper<Loan>();
 
@@ -426,31 +424,6 @@ export function LoanTapeView() {
         </div>
       </div>
 
-      <div className="mt-6 mb-6">
-        <h3 className="text-lg font-bold text-slate-900 mb-1">Questions</h3>
-        <p className="text-sm text-slate-500 mb-6">
-          Use the loan-level table columns (LTV, Risk, Enforcement, Jurisdiction) when answering.
-        </p>
-        <div className="bg-white border border-slate-200 rounded-xl p-5">
-          <QuestionBlock num="Q1" title="Why average LTV is not enough">
-            <TextAnswerInput
-              questionId="lt_q_avg_tail"
-              module="m1"
-              label="Why is it dangerous to underwrite this portfolio from a single average LTV instead of the loan-level tape?"
-              rows={5}
-            />
-          </QuestionBlock>
-          <QuestionBlock num="Q2" title="C-to-D migration impact">
-            <TextAnswerInput
-              questionId="lt_q_c_to_d_impact"
-              module="m1"
-              label="If a collateral value edit pushes a loan from C to D, explain the expected direction of impact on recoveries and bid capacity."
-              rows={5}
-            />
-          </QuestionBlock>
-        </div>
-      </div>
-
       <div className="mt-4 flex justify-end">
         <button
           onClick={() => dispatch({ type: 'MARK_COMPLETE', module: 'm1' })}
@@ -461,12 +434,9 @@ export function LoanTapeView() {
               : 'bg-blue-700 text-white hover:bg-blue-800'}`}
         >
           <Check size={15} />
-          {isComplete ? 'Submitted' : 'Submit Answers'}
+          {isComplete ? 'Completed' : 'Mark Complete'}
         </button>
       </div>
-      <p className="mt-2 text-xs text-slate-500 text-right">
-        After submission, this module is locked and answers cannot be changed unless your instructor unlocks it.
-      </p>
     </PageShell>
   );
 }

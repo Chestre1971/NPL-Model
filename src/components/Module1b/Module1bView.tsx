@@ -467,11 +467,11 @@ export function Module1bView() {
               rows={5}
             />
           </QuestionBlock>
-          <QuestionBlock num="Q2" title="Worst risk-state cohort">
+          <QuestionBlock num="Q2" title="Highest-risk cohort by state and risk">
             <TextAnswerInput
               questionId="pc_q_worst_cohort"
               module="m1b"
-              label="From the Risk x State cross-tab, choose the worst cohort and explain why it should receive the deepest discount."
+              label="From the Risk x State cross-tab, name the cohort (Risk and State) with the largest recovery risk, and explain why."
               rows={5}
             />
           </QuestionBlock>

@@ -1,8 +1,6 @@
 ﻿import { useApp } from '../../context/AppContext';
 import { FileText, TrendingUp, Building2, BookOpen, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { PageShell } from '../shared/PageShell';
-import { TextAnswerInput } from '../shared/AnswerInput';
-import { QuestionBlock } from '../shared/QuestionBlock';
 
 function Section({ icon, title, children }: {
   icon: React.ReactNode; title: string; children: React.ReactNode;
@@ -335,31 +333,6 @@ export function Module0View() {
         </div>
       </Section>
 
-      <div className="mb-6">
-        <h3 className="text-lg font-bold text-slate-900 mb-1">Questions</h3>
-        <p className="text-sm text-slate-500 mb-6">
-          Answer using the Deal Brief content above. Focus on mechanism and implications.
-        </p>
-        <div className="bg-white border border-slate-200 rounded-xl p-5">
-          <QuestionBlock num="Q1" title="Why coupon alone is not enough">
-            <TextAnswerInput
-              questionId="db_q_discount_mechanism"
-              module="m0"
-              label="Using the Deal Brief page, explain why Heron cannot rely on coupon income alone to hit its 12.5% unlevered hurdle."
-              rows={5}
-            />
-          </QuestionBlock>
-          <QuestionBlock num="Q2" title="Round 1 constraints and bid confidence">
-            <TextAnswerInput
-              questionId="db_q_round1_limits"
-              module="m0"
-              label="What underwriting limitations exist in Round 1, and how should that change the confidence level of an indicative bid?"
-              rows={5}
-            />
-          </QuestionBlock>
-        </div>
-      </div>
-
       <div className="mt-4 flex justify-end">
         <button
           onClick={() => dispatch({ type: 'MARK_COMPLETE', module: 'm0' })}
@@ -370,12 +343,9 @@ export function Module0View() {
               : 'bg-blue-700 text-white hover:bg-blue-800'}`}
         >
           <CheckCircle2 size={15} />
-          {isComplete ? 'Submitted' : 'Submit Answers'}
+          {isComplete ? 'Completed' : 'Mark Complete'}
         </button>
       </div>
-      <p className="mt-2 text-xs text-slate-500 text-right">
-        After submission, this module is locked and answers cannot be changed unless your instructor unlocks it.
-      </p>
 
     </PageShell>
   );
