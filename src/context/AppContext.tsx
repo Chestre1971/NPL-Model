@@ -410,34 +410,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const studentId = profile?.email ?? user.email ?? user.id;
       setUserRole((profile?.role as 'student' | 'instructor' | null) ?? 'student');
 
-      if (hydratedUserRef.current !== user.id) {
-        // Switching authenticated users: clear prior in-browser module state immediately.
-        dispatch({ type: 'HYDRATE_STATE', payload: createEmptyState() });
+      // Always reset local in-memory state, then hydrate from this user's remote record only.
+      // This prevents any browser-local carryover between users.
+      dispatch({ type: 'HYDRATE_STATE', payload: createEmptyState() });
 
-        const { data: remoteState } = await sb
-          .from('student_states')
-          .select('state_json')
-          .eq('user_id', user.id)
-          .eq('assignment_id', ASSIGNMENT_ID)
-          .maybeSingle();
+      const { data: remoteState } = await sb
+        .from('student_states')
+        .select('state_json')
+        .eq('user_id', user.id)
+        .eq('assignment_id', ASSIGNMENT_ID)
+        .maybeSingle();
 
-        if (remoteState?.state_json) {
-          const remote = remoteState.state_json as AppState;
-          const remoteStudentId = remote?.session?.studentId;
-          // Guard against legacy cross-user contamination from earlier merge behavior.
-          if (!remoteStudentId || remoteStudentId === studentId) {
-            const normalized = normalizeStateShape(remote);
-            dispatch({ type: 'HYDRATE_STATE', payload: normalized });
-          }
-        } else {
-          // New user (or no saved remote state): start from clean defaults.
-          dispatch({ type: 'HYDRATE_STATE', payload: createEmptyState() });
+      if (remoteState?.state_json) {
+        const remote = remoteState.state_json as AppState;
+        const remoteStudentId = remote?.session?.studentId;
+        // Guard against legacy cross-user contamination from earlier merge behavior.
+        if (!remoteStudentId || remoteStudentId === studentId) {
+          const normalized = normalizeStateShape(remote);
+          dispatch({ type: 'HYDRATE_STATE', payload: normalized });
         }
-        dispatch({ type: 'SET_SESSION', payload: { studentId, name: displayName } });
-        hydratedUserRef.current = user.id;
-      } else {
-        dispatch({ type: 'SET_SESSION', payload: { studentId, name: displayName } });
       }
+      dispatch({ type: 'SET_SESSION', payload: { studentId, name: displayName } });
+      hydratedUserRef.current = user.id;
 
       setAuthLoading(false);
     };
