@@ -544,7 +544,7 @@ export function Module3View() {
             <TextAnswerInput
               questionId="ra_q_floor_definition"
               module="m3"
-              label="In plain terms, what is a recovery shortfall (when collateral does not fully cover loan balance), and why does that directly reduce the maximum price you can bid?"
+              label="In plain terms, what is a recovery shortfall, and why does that directly reduce the maximum price you can bid?"
               rows={5}
             />
           </QuestionBlock>

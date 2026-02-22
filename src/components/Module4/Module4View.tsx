@@ -654,11 +654,11 @@ export function Module4View() {
             rows={5}
           />
         </QuestionBlock>
-        <QuestionBlock num="Q4" title="B-cure: execution failure modes">
+        <QuestionBlock num="Q4" title="B-cure: go/no-go triggers">
           <TextAnswerInput
             questionId="ar_b_q_execution_bridge"
             module="m4"
-            label="What are the main execution risks in the B-cure strategy, and where would underperformance show up in the model outputs?"
+            label="Define two practical trigger points that would make Heron abandon the B-cure path and pivot to another resolution route. Explain how each trigger would affect expected returns."
             rows={5}
           />
         </QuestionBlock>

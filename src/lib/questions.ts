@@ -134,9 +134,9 @@ export const QUESTION_REGISTRY: Record<string, QuestionDef> = {
   },
   ar_b_q_execution_bridge: {
     id: 'ar_b_q_execution_bridge', module: 'm4', type: 'text',
-    label: 'B-cure: execution risks and where they appear in outputs',
-    modelAnswer: 'Key failure modes are: lower-than-expected cure participation, delayed cures/sale timing, and weaker sale execution (higher required yield). In outputs, this appears as smaller/late B-loan inflows, reduced B-step uplift in the return bridge, lower supportable bid, and weaker IRR at a given purchase price.',
-    rubric: 'Award marks for: at least two realistic B-strategy risks; mapping to specific model effects (timing, proceeds, bridge step, bid/IRR); coherent causal chain.',
+    label: 'B-cure: go/no-go triggers and return impact',
+    modelAnswer: 'A strong answer sets explicit pivot triggers, for example: (1) cure participation below a threshold (e.g., too few borrowers curing by the deadline), and (2) post-cure exit pricing widening (required sale yields too high to justify planned proceeds). If either trigger is hit, Heron should switch to an alternate path (hold/enforcement/renegotiation). In the model this shows up as delayed/smaller B inflows, weaker B-step bridge uplift, lower bid support, and reduced IRR/MoIC unless entry price is adjusted.',
+    rubric: 'Award marks for: two concrete, measurable trigger points; clear alternative action if trigger is breached; explicit mapping from trigger breach to model outputs (timing/proceeds, bridge step, bid and/or IRR/MoIC).',
   },
   ar_c_q_rate_split: {
     id: 'ar_c_q_rate_split', module: 'm4', type: 'text',
