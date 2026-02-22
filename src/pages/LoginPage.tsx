@@ -12,7 +12,6 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
 
   useEffect(() => {
     if (state.session) navigate('/app/deal-brief');
@@ -33,7 +32,6 @@ export function LoginPage() {
     }
 
     setError('');
-    setMessage('');
     setLoading(true);
 
     if (mode === 'signin') {
@@ -44,7 +42,6 @@ export function LoginPage() {
       if (res.error) {
         setError(res.error);
       } else {
-        setMessage('Account created. If email confirmation is enabled, confirm email first, then sign in.');
         setMode('signin');
       }
     }
@@ -131,8 +128,6 @@ export function LoginPage() {
           </div>
 
           {error && <p className="text-xs text-red-600">{error}</p>}
-          {message && <p className="text-xs text-green-700">{message}</p>}
-
           <button
             onClick={handleSubmit}
             disabled={loading}

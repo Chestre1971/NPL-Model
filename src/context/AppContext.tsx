@@ -408,10 +408,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         'Student';
 
       const studentId = profile?.email ?? user.email ?? user.id;
-      dispatch({ type: 'SET_SESSION', payload: { studentId, name: displayName } });
       setUserRole((profile?.role as 'student' | 'instructor' | null) ?? 'student');
 
       if (hydratedUserRef.current !== user.id) {
+        // Switching authenticated users: clear prior in-browser module state immediately.
+        dispatch({ type: 'HYDRATE_STATE', payload: createEmptyState() });
+
         const { data: remoteState } = await sb
           .from('student_states')
           .select('state_json')
@@ -420,14 +422,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           .maybeSingle();
 
         if (remoteState?.state_json) {
-          const normalized = normalizeStateShape(remoteState.state_json as AppState);
-          dispatch({ type: 'HYDRATE_STATE', payload: normalized });
+          const remote = remoteState.state_json as AppState;
+          const remoteStudentId = remote?.session?.studentId;
+          // Guard against legacy cross-user contamination from earlier merge behavior.
+          if (!remoteStudentId || remoteStudentId === studentId) {
+            const normalized = normalizeStateShape(remote);
+            dispatch({ type: 'HYDRATE_STATE', payload: normalized });
+          }
         } else {
           // New user (or no saved remote state): start from clean defaults.
           dispatch({ type: 'HYDRATE_STATE', payload: createEmptyState() });
         }
         dispatch({ type: 'SET_SESSION', payload: { studentId, name: displayName } });
         hydratedUserRef.current = user.id;
+      } else {
+        dispatch({ type: 'SET_SESSION', payload: { studentId, name: displayName } });
       }
 
       setAuthLoading(false);
