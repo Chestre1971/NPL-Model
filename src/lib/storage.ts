@@ -12,6 +12,7 @@ export interface StudentSession {
 
 export interface ModuleProgress {
   completed: boolean;
+  locked: boolean;
   answers: Record<string, string>;  // questionId -> student's answer
   textAnswers: Record<string, string>; // questionId -> free-text answer
   assumptions: Record<string, number>; // assumption key -> value
@@ -45,7 +46,7 @@ export interface AppState {
 const STORAGE_KEY = 'npl_model_state';
 
 function defaultModule(): ModuleProgress {
-  return { completed: false, answers: {}, textAnswers: {}, assumptions: {} };
+  return { completed: false, locked: false, answers: {}, textAnswers: {}, assumptions: {} };
 }
 
 function defaultState(): AppState {

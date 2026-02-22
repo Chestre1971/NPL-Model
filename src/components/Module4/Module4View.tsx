@@ -693,6 +693,9 @@ export function Module4View() {
           {isComplete ? 'Submitted' : 'Submit Answers'}
         </button>
       </div>
+      <p className="mt-2 text-xs text-slate-500 text-right">
+        After submission, this module is locked and answers cannot be changed unless your instructor unlocks it.
+      </p>
     </PageShell>
   );
 }

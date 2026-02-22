@@ -98,6 +98,7 @@ export function AdminPage() {
   const [loadingRecords, setLoadingRecords] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [savingSubmissionId, setSavingSubmissionId] = useState<string | null>(null);
+  const [savingLockModule, setSavingLockModule] = useState<string | null>(null);
   const [promptText, setPromptText] = useState('');
   const [showPrompt, setShowPrompt] = useState(false);
 
@@ -270,6 +271,45 @@ export function AdminPage() {
       return [...rest, data as ScoreRow];
     });
   }, [getDraft]);
+
+  const setModuleLockForStudent = useCallback(async (
+    student: StudentAdminRecord,
+    moduleId: string,
+    locked: boolean,
+  ) => {
+    if (!supabase) return;
+    setSavingLockModule(moduleId);
+    const nextState = {
+      session: student.session,
+      modules: {
+        ...student.modules,
+        [moduleId]: {
+          ...(student.modules[moduleId as keyof StudentRecord['modules']] ?? {}),
+          locked,
+          completed: locked ? true : false,
+        },
+      },
+    };
+
+    const { error } = await supabase
+      .from('student_states')
+      .update({ state_json: nextState, updated_at: new Date().toISOString() })
+      .eq('user_id', student.userId);
+
+    setSavingLockModule(null);
+    if (error) {
+      setLoadError(error.message);
+      return;
+    }
+
+    setRecords(prev => prev.map(r => {
+      if (r.userId !== student.userId) return r;
+      return {
+        ...r,
+        modules: nextState.modules as StudentRecord['modules'],
+      };
+    }));
+  }, []);
 
   const studentModuleStats = useMemo(() => {
     const out: Record<string, { awarded: number; max: number; graded: number; total: number; status: 'graded' | 'ungraded' | 'not_started' }> = {};
@@ -460,9 +500,28 @@ export function AdminPage() {
                     <div key={moduleId} className="mb-4 border border-slate-100 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
                         <h3 className="font-semibold text-sm text-slate-800">{MODULE_SHORT_LABEL[moduleId] ?? moduleId}</h3>
-                        <span className={`text-xs ${stat.status === 'graded' ? 'text-green-700' : stat.status === 'ungraded' ? 'text-amber-700' : 'text-slate-500'}`}>
-                          {stat.status} ({stat.graded}/{stat.total})
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs ${stat.status === 'graded' ? 'text-green-700' : stat.status === 'ungraded' ? 'text-amber-700' : 'text-slate-500'}`}>
+                            {stat.status} ({stat.graded}/{stat.total})
+                          </span>
+                          {selectedStudent && (
+                            <button
+                              onClick={() => void setModuleLockForStudent(
+                                selectedStudent,
+                                moduleId,
+                                !(selectedStudent.modules[moduleId as keyof StudentRecord['modules']]?.locked ?? false),
+                              )}
+                              disabled={savingLockModule === moduleId}
+                              className="text-xs px-2 py-1 rounded border border-slate-300 hover:bg-slate-50 disabled:opacity-60"
+                            >
+                              {savingLockModule === moduleId
+                                ? 'Saving...'
+                                : (selectedStudent.modules[moduleId as keyof StudentRecord['modules']]?.locked ?? false)
+                                  ? 'Unlock for Resubmission'
+                                  : 'Lock Module'}
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {qIds.map(qId => {

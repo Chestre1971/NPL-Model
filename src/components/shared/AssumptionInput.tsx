@@ -17,12 +17,14 @@ export function AssumptionInput({
 }: AssumptionInputProps) {
   const { state, dispatch } = useApp();
   const value = state.modules[module]?.assumptions?.[assumptionKey] ?? defaultValue;
+  const isLocked = state.modules[module]?.locked ?? false;
 
   const displayValue = format === 'pct' ? (value * 100).toFixed(2)
     : format === 'currency' ? (value / 1e6).toFixed(1)
     : value.toString();
 
   const handleChange = (raw: string) => {
+    if (isLocked) return;
     const n = parseFloat(raw);
     if (isNaN(n)) return;
     const actual = format === 'pct' ? n / 100
@@ -40,10 +42,11 @@ export function AssumptionInput({
           type="number"
           value={displayValue}
           onChange={e => handleChange(e.target.value)}
+          disabled={isLocked}
           step={step ?? (format === 'pct' ? 0.1 : format === 'currency' ? 10 : 1)}
           min={min}
           max={max}
-          className="border border-slate-300 rounded-lg px-3 py-1.5 text-sm w-28 focus:outline-none focus:ring-2 focus:ring-blue-400 text-right"
+          className={`border border-slate-300 rounded-lg px-3 py-1.5 text-sm w-28 focus:outline-none focus:ring-2 focus:ring-blue-400 text-right ${isLocked ? 'opacity-70 bg-slate-100' : ''}`}
         />
         {format === 'pct' && <span className="text-xs text-slate-400">%</span>}
         {format === 'currency' && <span className="text-xs text-slate-400">m</span>}

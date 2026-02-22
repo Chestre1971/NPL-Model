@@ -181,6 +181,9 @@ export function ICMemoView() {
           {isComplete ? 'Submitted' : 'Submit IC Memo'}
         </button>
       </div>
+      <p className="mt-2 text-xs text-slate-500 text-right">
+        After submission, this memo is locked and answers cannot be changed unless your instructor unlocks it.
+      </p>
 
     </PageShell>
   );

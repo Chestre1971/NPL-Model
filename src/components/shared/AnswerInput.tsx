@@ -19,8 +19,10 @@ export function AnswerInput({
 }: AnswerInputProps) {
   const { state, dispatch } = useApp();
   const studentAnswer = state.modules[module]?.answers?.[questionId] ?? '';
+  const isLocked = state.modules[module]?.locked ?? false;
 
   const handleChange = (val: string) => {
+    if (isLocked) return;
     dispatch({ type: 'SET_ANSWER', module, questionId, answer: val });
   };
 
@@ -58,9 +60,10 @@ export function AnswerInput({
           type="text"
           value={studentAnswer}
           onChange={e => handleChange(e.target.value)}
+          disabled={isLocked}
           placeholder={format === 'pct' ? 'e.g. 12.00%' : format === 'currency' ? 'e.g. $1,679.3m' : 'Enter answer'}
           className={`border rounded-lg px-3 py-2 text-sm w-48 focus:outline-none focus:ring-2 focus:ring-blue-400
-            ${status === 'correct' ? 'answer-correct' : status === 'wrong' ? 'answer-wrong' : 'border-slate-300'}`}
+            ${status === 'correct' ? 'answer-correct' : status === 'wrong' ? 'answer-wrong' : 'border-slate-300'} ${isLocked ? 'opacity-70 bg-slate-100' : ''}`}
         />
         {status === 'correct' && <CheckCircle className="text-green-600" size={18} />}
         {status === 'wrong' && <XCircle className="text-red-500" size={18} />}
@@ -80,6 +83,7 @@ interface TextAnswerProps {
 export function TextAnswerInput({ questionId, module, label, rows = 4 }: TextAnswerProps) {
   const { state, dispatch } = useApp();
   const studentAnswer = state.modules[module]?.textAnswers?.[questionId] ?? '';
+  const isLocked = state.modules[module]?.locked ?? false;
   const modelAnswer = QUESTION_REGISTRY[questionId]?.modelAnswer;
   const rubric = QUESTION_REGISTRY[questionId]?.rubric;
 
@@ -89,10 +93,15 @@ export function TextAnswerInput({ questionId, module, label, rows = 4 }: TextAns
       <textarea
         rows={rows}
         value={studentAnswer}
-        onChange={e => dispatch({ type: 'SET_TEXT_ANSWER', module, questionId, answer: e.target.value })}
+        onChange={e => {
+          if (isLocked) return;
+          dispatch({ type: 'SET_TEXT_ANSWER', module, questionId, answer: e.target.value });
+        }}
+        disabled={isLocked}
         placeholder="Type your answer here..."
-        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-y"
+        className={`w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-y ${isLocked ? 'opacity-70 bg-slate-100' : ''}`}
       />
+      {isLocked && <p className="mt-1 text-xs text-amber-700">This module is locked after submission. Contact instructor for override.</p>}
       {modelAnswer && (
         <div className="mt-2 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
           <p className="text-xs font-semibold text-emerald-700 mb-1">Model Answer</p>

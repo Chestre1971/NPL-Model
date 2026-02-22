@@ -108,6 +108,7 @@ type Action =
   | { type: 'SET_ASSUMPTION'; key: keyof SharedAssumptions; value: number }
   | { type: 'SET_MODULE_ASSUMPTIONS'; module: keyof AppState['modules']; assumptions: Record<string, number> }
   | { type: 'MARK_COMPLETE'; module: keyof AppState['modules'] }
+  | { type: 'SET_MODULE_LOCK'; module: keyof AppState['modules']; locked: boolean; completed?: boolean }
   | { type: 'OVERRIDE_LOAN'; loanId: string; changes: LoanOverride }
   | { type: 'RESET_LOAN'; loanId: string }
   | { type: 'RESET_ALL_LOANS' };
@@ -145,7 +146,7 @@ interface AppContextValue {
 
 const AppContext = createContext<AppContextValue | null>(null);
 
-const EMPTY_MODULE = { completed: false, answers: {}, textAnswers: {}, assumptions: {} };
+const EMPTY_MODULE = { completed: false, locked: false, answers: {}, textAnswers: {}, assumptions: {} };
 const ASSIGNMENT_ID = 'npl_model_2026_q1';
 
 function normalizeStateShape(raw: AppState): AppState {
@@ -196,6 +197,7 @@ function buildSubmissionRows(state: AppState, userId: string) {
         answer_numeric: payload.answer_numeric,
         answer_payload: {
           completed: Boolean(moduleData.completed),
+          locked: Boolean(moduleData.locked),
           assumptions: moduleData.assumptions ?? {},
         },
       });
@@ -258,6 +260,7 @@ function reducer(state: AppState, action: Action): AppState {
 
     case 'SET_ANSWER': {
       const mod = state.modules[action.module] ?? EMPTY_MODULE;
+      if (mod.locked) return state;
       return {
         ...state,
         modules: {
@@ -268,6 +271,7 @@ function reducer(state: AppState, action: Action): AppState {
     }
     case 'SET_TEXT_ANSWER': {
       const mod = state.modules[action.module] ?? EMPTY_MODULE;
+      if (mod.locked) return state;
       return {
         ...state,
         modules: {
@@ -278,6 +282,7 @@ function reducer(state: AppState, action: Action): AppState {
     }
     case 'SET_MODULE_ASSUMPTIONS': {
       const mod = state.modules[action.module] ?? EMPTY_MODULE;
+      if (mod.locked) return state;
       return {
         ...state,
         modules: {
@@ -290,7 +295,21 @@ function reducer(state: AppState, action: Action): AppState {
       const mod = state.modules[action.module] ?? EMPTY_MODULE;
       return {
         ...state,
-        modules: { ...state.modules, [action.module]: { ...mod, completed: true } },
+        modules: { ...state.modules, [action.module]: { ...mod, completed: true, locked: true } },
+      };
+    }
+    case 'SET_MODULE_LOCK': {
+      const mod = state.modules[action.module] ?? EMPTY_MODULE;
+      return {
+        ...state,
+        modules: {
+          ...state.modules,
+          [action.module]: {
+            ...mod,
+            locked: action.locked,
+            completed: action.completed ?? mod.completed,
+          },
+        },
       };
     }
     case 'OVERRIDE_LOAN': {
