@@ -62,7 +62,8 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
 
 // ── Auth guard ──────────────────────────────────────────────────────────────
 function RequireAuth({ children }: { children: ReactNode }) {
-  const { state } = useApp();
+  const { state, authLoading } = useApp();
+  if (authLoading) return <RouteFallback />;
   if (!state.session) return <Navigate to="/" replace />;
   return <>{children}</>;
 }

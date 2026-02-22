@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, useState, useMemo } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { loadState, saveState, saveStudentRecord, type AppState, type LoanOverride } from '../lib/storage';
 import type { Loan } from '../data/loanTape';
 import { buildTimeline } from '../lib/cashflow';
@@ -7,6 +7,7 @@ import { buildM1CashFlow, buildM2CashFlow, buildRecoveryCashFlow } from '../lib/
 import { buildM3CashFlow } from '../lib/module3';
 import { buildM4CashFlow } from '../lib/module4';
 import { isJudicialState } from '../lib/states';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
 
 // ─── Shared Assumptions ────────────────────────────────────────────────────────
 
@@ -99,6 +100,8 @@ const DEFAULT_ASSUMPTIONS: SharedAssumptions = {
 
 type Action =
   | { type: 'LOGIN'; payload: { studentId: string; name: string } }
+  | { type: 'SET_SESSION'; payload: { studentId: string; name: string } | null }
+  | { type: 'HYDRATE_STATE'; payload: AppState }
   | { type: 'LOGOUT' }
   | { type: 'SET_ANSWER'; module: keyof AppState['modules']; questionId: string; answer: string }
   | { type: 'SET_TEXT_ANSWER'; module: keyof AppState['modules']; questionId: string; answer: string }
@@ -111,8 +114,14 @@ type Action =
 
 interface AppContextValue {
   state: AppState;
+  authLoading: boolean;
+  isSupabaseConfigured: boolean;
+  userRole: 'student' | 'instructor' | null;
   assumptions: SharedAssumptions;
   dispatch: React.Dispatch<Action>;
+  signIn: (email: string, password: string) => Promise<{ error?: string }>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<{ error?: string }>;
+  signOut: () => Promise<void>;
   timeline: Date[];
   effectiveLoans: Loan[];
   // Computed models (memoized)
@@ -137,9 +146,96 @@ interface AppContextValue {
 const AppContext = createContext<AppContextValue | null>(null);
 
 const EMPTY_MODULE = { completed: false, answers: {}, textAnswers: {}, assumptions: {} };
+const ASSIGNMENT_ID = 'npl_model_2026_q1';
+
+function normalizeStateShape(raw: AppState): AppState {
+  const def = loadState();
+  return {
+    ...def,
+    ...raw,
+    modules: {
+      ...def.modules,
+      ...(raw.modules ?? {}),
+    },
+    loanOverrides: {
+      ...def.loanOverrides,
+      ...(raw.loanOverrides ?? {}),
+    },
+  };
+}
+
+function buildSubmissionRows(state: AppState, userId: string) {
+  const rows: Array<{
+    user_id: string;
+    assignment_id: string;
+    module_id: string;
+    question_id: string;
+    answer_text: string | null;
+    answer_numeric: string | null;
+    answer_payload: Record<string, unknown>;
+  }> = [];
+
+  for (const [moduleId, moduleData] of Object.entries(state.modules)) {
+    const perQuestion = new Map<string, { answer_text: string | null; answer_numeric: string | null }>();
+
+    for (const [questionId, answer] of Object.entries(moduleData.answers ?? {})) {
+      perQuestion.set(questionId, { answer_text: null, answer_numeric: answer ?? null });
+    }
+    for (const [questionId, answer] of Object.entries(moduleData.textAnswers ?? {})) {
+      const prior = perQuestion.get(questionId) ?? { answer_text: null, answer_numeric: null };
+      perQuestion.set(questionId, { ...prior, answer_text: answer ?? null });
+    }
+
+    for (const [questionId, payload] of perQuestion.entries()) {
+      rows.push({
+        user_id: userId,
+        assignment_id: ASSIGNMENT_ID,
+        module_id: moduleId,
+        question_id: questionId,
+        answer_text: payload.answer_text,
+        answer_numeric: payload.answer_numeric,
+        answer_payload: {
+          completed: Boolean(moduleData.completed),
+          assumptions: moduleData.assumptions ?? {},
+        },
+      });
+    }
+  }
+
+  return rows;
+}
 
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
+    case 'SET_SESSION': {
+      if (!action.payload) return { ...state, session: null };
+      const now = new Date().toISOString();
+      return {
+        ...state,
+        session: {
+          studentId: action.payload.studentId,
+          name: action.payload.name,
+          startedAt: state.session?.startedAt ?? now,
+          lastActive: now,
+        },
+      };
+    }
+    case 'HYDRATE_STATE': {
+      const incoming = action.payload;
+      const merged: AppState = {
+        ...state,
+        ...incoming,
+        modules: {
+          ...state.modules,
+          ...(incoming.modules ?? {}),
+        },
+        loanOverrides: {
+          ...state.loanOverrides,
+          ...(incoming.loanOverrides ?? {}),
+        },
+      };
+      return merged;
+    }
     case 'LOGIN': {
       const now = new Date().toISOString();
       return {
@@ -153,7 +249,12 @@ function reducer(state: AppState, action: Action): AppState {
       };
     }
     case 'LOGOUT':
-      return { ...state, session: null };
+      return {
+        ...state,
+        session: null,
+        modules: loadState().modules,
+        loanOverrides: {},
+      };
 
     case 'SET_ANSWER': {
       const mod = state.modules[action.module] ?? EMPTY_MODULE;
@@ -216,6 +317,105 @@ function reducer(state: AppState, action: Action): AppState {
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, loadState);
   const [loanTape, setLoanTape] = useState<Loan[]>([]);
+  const [authLoading, setAuthLoading] = useState(isSupabaseConfigured);
+  const [userRole, setUserRole] = useState<'student' | 'instructor' | null>(null);
+  const hydratedUserRef = useRef<string | null>(null);
+
+  const signIn = useCallback(async (email: string, password: string) => {
+    if (!supabase) return { error: 'Supabase is not configured.' };
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return error ? { error: error.message } : {};
+  }, []);
+
+  const signUp = useCallback(async (email: string, password: string, fullName?: string) => {
+    if (!supabase) return { error: 'Supabase is not configured.' };
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName ?? '' },
+      },
+    });
+    return error ? { error: error.message } : {};
+  }, []);
+
+  const signOut = useCallback(async () => {
+    if (!supabase) return;
+    await supabase.auth.signOut();
+    hydratedUserRef.current = null;
+    setUserRole(null);
+    dispatch({ type: 'LOGOUT' });
+  }, []);
+
+  useEffect(() => {
+    const sb = supabase;
+    if (!sb) {
+      setAuthLoading(false);
+      return;
+    }
+
+    let active = true;
+
+    const applySession = async () => {
+      const { data: sessionData } = await sb.auth.getSession();
+      const session = sessionData.session;
+
+      if (!active) return;
+      if (!session?.user) {
+        hydratedUserRef.current = null;
+        setUserRole(null);
+        dispatch({ type: 'LOGOUT' });
+        setAuthLoading(false);
+        return;
+      }
+
+      const user = session.user;
+      const { data: profile } = await sb
+        .from('profiles')
+        .select('id, email, full_name, role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const displayName =
+        (profile?.full_name && profile.full_name.trim()) ||
+        ((user.user_metadata?.full_name as string | undefined) ?? '').trim() ||
+        user.email?.split('@')[0] ||
+        'Student';
+
+      const studentId = profile?.email ?? user.email ?? user.id;
+      dispatch({ type: 'SET_SESSION', payload: { studentId, name: displayName } });
+      setUserRole((profile?.role as 'student' | 'instructor' | null) ?? 'student');
+
+      if (hydratedUserRef.current !== user.id) {
+        const { data: remoteState } = await sb
+          .from('student_states')
+          .select('state_json')
+          .eq('user_id', user.id)
+          .eq('assignment_id', ASSIGNMENT_ID)
+          .maybeSingle();
+
+        if (remoteState?.state_json) {
+          const normalized = normalizeStateShape(remoteState.state_json as AppState);
+          dispatch({ type: 'HYDRATE_STATE', payload: normalized });
+          dispatch({ type: 'SET_SESSION', payload: { studentId, name: displayName } });
+        }
+        hydratedUserRef.current = user.id;
+      }
+
+      setAuthLoading(false);
+    };
+
+    applySession();
+
+    const { data: authSub } = sb.auth.onAuthStateChange(() => {
+      void applySession();
+    });
+
+    return () => {
+      active = false;
+      authSub.subscription.unsubscribe();
+    };
+  }, []);
 
   // Lazy-load the 178 KB loan tape data chunk — keeps the initial bundle small.
   useEffect(() => {
@@ -393,14 +593,51 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const recoveryIRR = useMemo(() => xirr(recoveryCF.cashflows, timeline), [recoveryCF.cashflows, timeline]);
   const recoveryMoIC = useMemo(() => calcMoIC(recoveryCF.cashflows), [recoveryCF.cashflows]);
 
-  // Persist on every state change
+  // Persist local cache on every state change
   useEffect(() => {
     saveState(state);
     if (state.session) saveStudentRecord(state);
   }, [state]);
 
+  // Persist authenticated student data to Supabase
+  useEffect(() => {
+    const sb = supabase;
+    if (!sb || authLoading) return;
+
+    let cancelled = false;
+    const run = async () => {
+      const { data: authData } = await sb.auth.getUser();
+      const user = authData.user;
+      if (!user || cancelled) return;
+
+      await sb
+        .from('student_states')
+        .upsert(
+          {
+            user_id: user.id,
+            assignment_id: ASSIGNMENT_ID,
+            state_json: state,
+          },
+          { onConflict: 'user_id' },
+        );
+
+      const rows = buildSubmissionRows(state, user.id);
+      if (rows.length > 0) {
+        await sb
+          .from('submissions')
+          .upsert(rows, { onConflict: 'user_id,assignment_id,module_id,question_id' });
+      }
+    };
+
+    const timer = window.setTimeout(() => { void run(); }, 600);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [state, authLoading]);
+
   // Show a loading screen while the loan tape data chunk is fetching.
-  if (loanTape.length === 0) {
+  if (authLoading || loanTape.length === 0) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
@@ -413,7 +650,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      state, assumptions, dispatch, timeline, effectiveLoans,
+      state, authLoading, isSupabaseConfigured, userRole, assumptions, dispatch, signIn, signUp, signOut, timeline, effectiveLoans,
       m1CF, m2CF, m3CF, m4CF, recoveryCF,
       m1IRR, m1MoIC, m2IRR, m2MoIC, m3IRR, m3MoIC, m4IRR, m4MoIC,
       recoveryIRR, recoveryMoIC,

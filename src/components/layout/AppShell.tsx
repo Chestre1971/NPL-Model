@@ -18,11 +18,11 @@ const tabs = [
 ];
 
 export function AppShell() {
-  const { state, dispatch } = useApp();
+  const { state, signOut } = useApp();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    dispatch({ type: 'LOGOUT' });
+  const handleLogout = async () => {
+    await signOut();
     navigate('/');
   };
 
@@ -88,4 +88,3 @@ export function AppShell() {
     </div>
   );
 }
-
