@@ -49,6 +49,8 @@ function GradingPromptModal({ promptText, onClose }: { promptText: string; onClo
 
 export function AdminPage() {
   const { state, authLoading, userRole } = useApp();
+  const [resolvedRole, setResolvedRole] = useState<'student' | 'instructor' | null>(userRole);
+  const [resolvedEmail, setResolvedEmail] = useState<string>('');
   const [records, setRecords] = useState<StudentRecord[]>([]);
   const [selected, setSelected] = useState<StudentRecord | null>(null);
   const [loadingRecords, setLoadingRecords] = useState(false);
@@ -96,15 +98,39 @@ export function AdminPage() {
   }, []);
 
   useEffect(() => {
+    setResolvedRole(userRole);
+  }, [userRole]);
+
+  useEffect(() => {
+    const run = async () => {
+      if (!supabase || !state.session) return;
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData.user;
+      if (!user) return;
+      setResolvedEmail(user.email ?? '');
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, email')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (profile?.role === 'instructor' || profile?.role === 'student') {
+        setResolvedRole(profile.role);
+      }
+      if (profile?.email) setResolvedEmail(profile.email);
+    };
+    void run();
+  }, [state.session]);
+
+  useEffect(() => {
     if (authLoading) return;
     if (!supabase) {
       setRecords(loadAllStudentRecords());
       return;
     }
-    if (state.session && userRole === 'instructor') {
+    if (state.session && resolvedRole === 'instructor') {
       void refresh();
     }
-  }, [authLoading, state.session, userRole, refresh]);
+  }, [authLoading, state.session, resolvedRole, refresh]);
 
   const completionStats = useMemo(() => {
     return COMPLETION_MODULES.map(m => ({
@@ -125,8 +151,12 @@ export function AdminPage() {
   if (!state.session) {
     return <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-700">Sign in first at <a className="ml-1 underline" href="/">/</a>.</div>;
   }
-  if (userRole !== 'instructor') {
-    return <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-700">Instructor access only.</div>;
+  if (resolvedRole !== 'instructor') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-700">
+        Instructor access only. Logged in as: {resolvedEmail || state.session.studentId} (role: {resolvedRole ?? 'unknown'})
+      </div>
+    );
   }
 
   return (
