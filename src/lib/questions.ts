@@ -46,15 +46,15 @@ export const QUESTION_REGISTRY: Record<string, QuestionDef> = {
   },
   sum_q_single_irr_risk: {
     id: 'sum_q_single_irr_risk', module: 'm1', type: 'text',
-    label: 'Why one final IRR number is insufficient without bridge decomposition',
-    modelAnswer: 'Single IRR hides source of value and execution dependence. Bridge shows what is robust vs assumption-sensitive and improves risk-adjusted decisions.',
-    rubric: 'Award marks for: limitation of one-number view; risk attribution via bridge; decision-quality implication.',
+    label: 'How IRR and MoIC evolve across active resolution steps',
+    modelAnswer: 'As A/B/C strategies are layered in, IRR typically rises because cash is pulled forward (faster monetization and shorter duration). MoIC can rise less, flatten, or even decline because some strategies exchange longer carry for earlier certainty (timing benefit vs total cash benefit). A-sale often gives the clearest timing uplift, B-cure adds value through cure cash plus re-performing sale execution, and C-DPO improves certainty/timing but may haircut nominal claims. The key takeaway is that IRR is more timing-sensitive, while MoIC is more total-cash sensitive.',
+    rubric: 'Award marks for: describing direction of IRR and MoIC through A/B/C steps; correctly explaining timing-vs-total-cash mechanics; at least one strategy-specific mechanism (A, B, or C) tied to metric movement.',
   },
   sum_q_sensitivity_first: {
     id: 'sum_q_sensitivity_first', module: 'm1', type: 'text',
-    label: 'First downside sensitivity to test and why',
-    modelAnswer: 'Pick highest-elasticity driver (often D timing/cost/recovery or DPO execution), explain mechanism and underwriting impact.',
-    rubric: 'Award marks for: selecting plausible high-impact variable; mechanism; pricing implication.',
+    label: 'How to adjust active-resolution mix to target 1.5x MoIC',
+    modelAnswer: 'To target a higher MoIC (e.g., 1.5x), the strategy usually shifts toward maximizing total cash capture rather than only accelerating timing. Examples: be more selective on A sales (hold stronger carry assets when sale pricing is weak), tighten B-cure execution criteria to prioritize higher-certainty cures/sale exits, and re-underwrite C-DPO terms to avoid over-discounting principal where enforcement-adjusted hold value is better. This may reduce some IRR timing benefit but can improve cumulative proceeds and therefore MoIC, provided execution risk remains controlled.',
+    rubric: 'Award marks for: proposing a credible strategy adjustment (not just “bid lower”); explicit link to improving total cash/MoIC; acknowledgment of trade-offs (e.g., timing/IRR or execution risk) and why the approach could still be superior.',
   },
 
   // Portfolio Composition (m1b)
@@ -75,80 +75,80 @@ export const QUESTION_REGISTRY: Record<string, QuestionDef> = {
   pb_q_upper_bound: {
     id: 'pb_q_upper_bound', module: 'm2', type: 'text',
     label: 'Why performing baseline is an upper bound',
-    modelAnswer: 'Assumes full performance and no distress frictions. Real NPL outcomes include losses, delays, and costs, so realized returns are lower.',
+    modelAnswer: 'Assumes full performance and no distress frictions, and treats the portfolio as if it is entirely comprised of performing loans. Real NPL outcomes include losses, delays, and costs, so realized returns are lower.',
     rubric: 'Award marks for: perfect-performance assumption; missing frictions; ceiling interpretation.',
   },
   pb_q_timing_vs_irr: {
     id: 'pb_q_timing_vs_irr', module: 'm2', type: 'text',
-    label: 'Why similar total cash can have different IRR',
-    modelAnswer: 'IRR is time-weighted. Earlier cash raises IRR and delayed cash lowers IRR even if nominal totals are similar.',
-    rubric: 'Award marks for: timing sensitivity of IRR; early vs late cash effect; distinction from total-cash view.',
+    label: 'Export CSV results: state IRR, MoIC, profit, and explain why IRR differs from coupon',
+    modelAnswer: 'Use the exported baseline cash flow to report portfolio IRR, MoIC, and total profit, then explain the rate gap: coupon is a contractual loan yield on outstanding principal, while IRR is an equity-style, time-weighted return on the purchase cash flow stream (including principal timing and any premium/discount to par). As a result, IRR can differ from the weighted average coupon even when all loans perform.',
+    rubric: 'Award marks for: correctly reporting IRR, MoIC, and profit from the export; clearly distinguishing coupon vs IRR definitions; explanation of timing/cash-flow-structure effects (and price basis if relevant); coherent linkage to why the two rates differ.',
   },
 
   // Recovery Analysis (m3)
   ra_q_floor_definition: {
     id: 'ra_q_floor_definition', module: 'm3', type: 'text',
-    label: 'Why recovery analysis is the floor scenario and what it excludes',
-    modelAnswer: 'It is passive hold-to-resolution with no active value-add. It excludes upside from active strategies and is conditional on assumptions holding.',
-    rubric: 'Award marks for: passive-floor logic; exclusion of active upside; assumption-conditional caveat.',
+    label: 'Recovery shortfall and why it reduces max bid',
+    modelAnswer: 'Recovery shortfall is the gap between loan balance and what collateral actually recovers at resolution (i.e., unrecovered principal). That shortfall is a direct loss of cash to the buyer, which lowers total proceeds and present value. To still achieve the target IRR, the investor must pay less upfront, so maximum bid price falls as expected shortfall rises.',
+    rubric: 'Award marks for: clear plain-language definition of recovery shortfall (balance minus recoverable collateral); explicit link to lower cash recovery/PV; correct bid-capacity logic (higher shortfall => lower max bid for same target IRR).',
   },
   ra_q_worse_than_floor: {
     id: 'ra_q_worse_than_floor', module: 'm3', type: 'text',
-    label: 'When realized returns can be worse than modeled floor',
-    modelAnswer: 'Examples: further collateral decline, longer legal timelines, higher costs, appraisal error, execution slippage. Each reduces recovery or delays cash and lowers IRR.',
-    rubric: 'Award marks for: at least three valid factors; causal mechanism for each; IRR/valuation linkage.',
+    label: 'Collateral value-cycle assumption and impact on bid/returns',
+    modelAnswer: 'The value-change assumption sets forecast collateral at maturity, which drives recovery and loss severity through min(balance, collateral value). In a rising cycle, projected collateral is higher, shortfalls shrink, recoveries improve, and both supportable bid and expected IRR tend to increase. In a falling cycle, projected collateral is lower, shortfalls widen, losses increase, and required bid discounts are larger; if bid is unchanged, expected IRR declines.',
+    rubric: 'Award marks for: explaining how value assumptions feed into recovery math; correct rising-vs-falling directional effects on recovery/losses; clear flow-through to bid capacity and returns (or IRR if price is held fixed).',
   },
 
   // Enforcement (m_enf)
   enf_q_cost_timing_bid: {
     id: 'enf_q_cost_timing_bid', module: 'm_enf', type: 'text',
-    label: 'Quantify NJ/J cost sensitivity and explain flow-through to bid/IRR',
-    modelAnswer: 'Higher cost assumptions reduce net D recovery, judicial more than NJ due to larger cost/timing drag. Lower net PV requires lower bid for target IRR; unchanged bid reduces IRR.',
-    rubric: 'Award marks for: correct direction and relative size; cost+timing mechanism; bid/IRR flow-through.',
+    label: 'Why D-loans often require enforcement to resolve',
+    modelAnswer: 'D-loans are typically underwater (LTV > 100%), so borrowers have limited or negative equity and weak incentive to contribute fresh capital, cure arrears, or refinance at par. Without economic incentive to cooperate, voluntary outcomes are less likely and lender recovery often requires legal enforcement to take control of collateral and convert it to cash.',
+    rubric: 'Award marks for: clear borrower-incentive logic (negative/limited equity); explanation of why voluntary cure/refi is unlikely; explicit link to enforcement as the practical recovery mechanism.',
   },
   enf_q_delay_d_vs_a: {
     id: 'enf_q_delay_d_vs_a', module: 'm_enf', type: 'text',
-    label: 'Why enforcement delay hurts D-loans more than A-loans',
-    modelAnswer: 'D relies on impaired terminal recovery with limited/no income cushion, so delay is pure PV drag. A loans are better covered and less loss-severity sensitive.',
-    rubric: 'Award marks for: D vs A cashflow distinction; PV drag mechanism; pricing implication.',
+    label: 'Why enforcement is the base/worst-case floor for D-loans and bid setting',
+    modelAnswer: 'For D-loans, enforcement is treated as the base/worst-case path because it is the coercive route available when cooperative resolutions fail: slower timelines, legal costs, and typically lower net recovery than consensual outcomes. It provides a conservative floor for underwriting because any negotiated strategy should be judged against what can be recovered through enforcement. Bid price should therefore be supportable even on this floor case; upside strategies can add value above it but should not be required just to justify the entry price.',
+    rubric: 'Award marks for: framing enforcement as coercive worst/base case for D-loans; identifying timeline/cost/recovery drag; explaining floor logic for bid setting (price must clear downside case, upside optionality above floor).',
   },
 
   // Active Resolution (m4) - A/B/C only
   ar_a_q_irr_moic: {
     id: 'ar_a_q_irr_moic', module: 'm4', type: 'text',
-    label: 'A-sale: why IRR can rise while MoIC falls',
-    modelAnswer: 'Early sale accelerates capital return (higher IRR) but can forgo later coupon cash (lower MoIC) depending on sale yield versus hold cashflows.',
-    rubric: 'Award marks for: IRR timing effect; MoIC trade-off; yield-vs-coupon mechanism.',
+    label: 'A-sale: value creation mechanism and return trade-off',
+    modelAnswer: 'A-sale creates value by monetizing stronger credits earlier, pulling forward cash and reducing duration/execution exposure versus passive hold. The trade-off is timing versus total carry: earlier proceeds usually improve IRR, but selling can reduce total coupon collection and therefore MoIC relative to full hold-to-maturity cashflows.',
+    rubric: 'Award marks for: clear early-monetization mechanism; explicit IRR (timing) vs MoIC (total-cash) trade-off; comparison to passive hold logic.',
   },
   ar_a_q_sell_vs_hold: {
     id: 'ar_a_q_sell_vs_hold', module: 'm4', type: 'text',
-    label: 'A-sale: conditions favoring sell-now vs hold',
-    modelAnswer: 'Sell-now when reinvestment opportunities and sale pricing are strong; hold when sale market is weak and carry economics are better.',
-    rubric: 'Award marks for: credible sell conditions; credible hold conditions; return logic.',
+    label: 'A-sale: impact of yield widening on proceeds, bid, and returns',
+    modelAnswer: 'If market yields demanded by buyers rise, A-loan sale prices fall (inverse price-yield relationship). Lower sale proceeds reduce active-resolution cash inflow and compress supportable bid capacity for the same target IRR. If bid is not adjusted down, expected IRR declines; if bid is reduced, IRR can be preserved but entry price must be lower.',
+    rubric: 'Award marks for: correct price-yield direction; flow-through from lower proceeds to bid capacity; correct IRR implication under fixed-bid vs adjusted-bid framing.',
   },
   ar_b_q_wait_trackrecord: {
     id: 'ar_b_q_wait_trackrecord', module: 'm4', type: 'text',
-    label: 'B-cure: why wait before re-performing sale',
-    modelAnswer: 'Wait to establish payment track record and reduce perceived re-default risk, improving sale pricing; trade-off is delayed capital return.',
-    rubric: 'Award marks for: track-record rationale; pricing link; delay trade-off.',
+    label: 'B-cure: why cure before re-performing sale',
+    modelAnswer: 'The cure step reduces balance (denominator cure), improves LTV/credit profile, and converts a covenant-breached loan into saleable re-performing paper. Economically, cure cash is an immediate inflow and de-risks the residual exposure, enabling better exit pricing than selling uncured stress. Without cure, re-performing buyers apply wider yields/haircuts or may not transact.',
+    rubric: 'Award marks for: denominator-cure mechanics; link from improved credit profile to saleability/pricing; clear statement of what is lost if cure fails.',
   },
   ar_b_q_execution_bridge: {
     id: 'ar_b_q_execution_bridge', module: 'm4', type: 'text',
-    label: 'B-cure execution risk and return-bridge effect',
-    modelAnswer: 'If cures fail or re-default risk remains, repricing benefit shrinks, sales delay, and B-step uplift in the bridge compresses.',
-    rubric: 'Award marks for: realistic execution risk; mechanism; bridge/IRR impact.',
+    label: 'B-cure: execution risks and where they appear in outputs',
+    modelAnswer: 'Key failure modes are: lower-than-expected cure participation, delayed cures/sale timing, and weaker sale execution (higher required yield). In outputs, this appears as smaller/late B-loan inflows, reduced B-step uplift in the return bridge, lower supportable bid, and weaker IRR at a given purchase price.',
+    rubric: 'Award marks for: at least two realistic B-strategy risks; mapping to specific model effects (timing, proceeds, bridge step, bid/IRR); coherent causal chain.',
   },
   ar_c_q_rate_split: {
     id: 'ar_c_q_rate_split', module: 'm4', type: 'text',
-    label: 'C-DPO: why use different discount rates for principal vs interest',
-    modelAnswer: 'Principal is generally better collateral-supported than distressed interest, so interest is discounted harder to reflect weaker recoverability/priority.',
-    rubric: 'Award marks for: risk hierarchy; discount-rate differentiation mechanism; DPO pricing implication.',
+    label: 'C-DPO: why both lender and borrower may prefer a negotiated payoff',
+    modelAnswer: 'A DPO can be value-accretive for both sides: borrower gets certainty and debt relief versus full contractual payoff, while lender receives earlier, more certain cash and avoids some legal/timing friction. Relative to waiting or enforcing, DPO exchanges some nominal claim for reduced duration and execution risk, which can improve risk-adjusted value if priced correctly.',
+    rubric: 'Award marks for: two-sided incentive explanation (borrower + lender); timing/certainty vs nominal-claim trade-off; comparison against wait/enforcement alternatives.',
   },
   ar_c_q_high_rate_execution: {
     id: 'ar_c_q_high_rate_execution', module: 'm4', type: 'text',
-    label: 'C-DPO: effect of higher-rate market on execution',
-    modelAnswer: 'Higher rates reduce borrower refinance capacity, lowering close probability and extending timelines; underwriting should stress proceeds/timing downward.',
-    rubric: 'Award marks for: refinance-capacity constraint; execution/timing impact; underwriting adjustment.',
+    label: 'C-DPO: key sensitivities and impact of weaker refinancing markets',
+    modelAnswer: 'C-DPO outcomes are most sensitive to borrower refinance capacity, discount-rate assumptions (principal/interest), and execution timing. In a weaker refinancing market, borrowers have less access to take-out capital, so close probability drops, timelines extend, and expected proceeds are typically revised down (or shifted later), reducing bid support and IRR unless entry price is lowered.',
+    rubric: 'Award marks for: naming core DPO sensitivities; explaining weaker-refi-market effect on probability/timing/proceeds; clear bid/IRR consequence.',
   },
 
   // Financing (m5)
@@ -160,9 +160,9 @@ export const QUESTION_REGISTRY: Record<string, QuestionDef> = {
   },
   fin_q_release_liquidity: {
     id: 'fin_q_release_liquidity', module: 'm5', type: 'text',
-    label: 'Why release pricing can create equity liquidity stress',
-    modelAnswer: 'Debt is repaid first from resolutions, which can leave thin near-term equity cash despite acceptable total returns, creating timing/liquidity risk.',
-    rubric: 'Award marks for: debt-priority cash diversion; timing mismatch; liquidity vs total-return distinction.',
+    label: 'Why release price should be above advance rate (APP basis)',
+    modelAnswer: 'If release price (% of APP) is above advance rate, each resolution event forces debt paydown faster than collateral is being released, creating principal de-levering and preserving lender over-collateralization. This protects the lender against adverse selection and timing risk as better loans repay first and weaker loans remain. If release is at or below advance, outstanding debt can stay too high relative to remaining collateral, increasing tail risk, refinancing pressure, and potential covenant/liquidity stress for both lender and equity.',
+    rubric: 'Award marks for: stating de-levering/credit-protection logic (release > advance); identifying adverse-selection and remaining-collateral coverage risk; explaining consequences if release <= advance (higher tail leverage, liquidity/refi stress).',
   },
   fin_q_neg_leverage_signals: {
     id: 'fin_q_neg_leverage_signals', module: 'm5', type: 'text',
@@ -196,9 +196,9 @@ export const QUESTION_REGISTRY: Record<string, QuestionDef> = {
   },
   ic_scenario_commentary: {
     id: 'ic_scenario_commentary', module: 'm_ic', type: 'text',
-    label: 'Scenario Returns: Comment on the return progression across scenarios. What does the gap between Performing Baseline and Active Resolution tell you about the value of active management?',
-    modelAnswer: `The Performing Baseline is a ceiling case and Recovery Analysis is the passive floor, so the spread between them quantifies value at risk from distress. Active Resolution closes part of that gap by improving timing and recoveries rather than assuming perfect performance. A-sale accelerates capital return, B-cure supports re-performance monetization, and C-DPO converts uncertain outcomes into negotiated proceeds. The remaining gap shows where D-loan enforcement friction still limits value, which is why execution quality determines whether bid assumptions are achieved.`,
-    rubric: 'Award marks for: ceiling vs floor framing; explicit interpretation of the scenario gap; at least three strategy references (A/B/C and/or D enforcement context); value-creation-through-execution logic.\nSCORING: 3 = complete progression and mechanisms; 2 = mostly correct with one missing element; 1 = descriptive only with weak causal chain; 0 = missing/off-topic.',
+    label: 'Outcome range: quantify downside/base/upside and explain active-management drivers',
+    modelAnswer: `A strong answer quantifies a plausible downside/base/upside range (for example, bid support and/or IRR/MoIC) and ties each case to explicit execution assumptions. Downside typically reflects weaker A-sale pricing, lower B-cure conversion, softer C-DPO closes, and/or longer judicial timelines. Base case reflects modeled assumptions. Upside reflects stronger sale execution, better cure participation, and tighter DPO outcomes. The key insight is that active management changes both expected value and dispersion by improving timing and recovery pathways versus passive outcomes.`,
+    rubric: 'Award marks for: explicit quantified range (downside/base/upside) using model-consistent metrics; clear mapping from each case to active-resolution assumptions (A/B/C and/or D timing context); explanation of how active management shifts both expected return and risk distribution.\nSCORING: 3 = quantified, assumption-linked, decision-useful range; 2 = mostly complete with minor gaps in quantification or linkage; 1 = qualitative commentary with limited quantification; 0 = missing/off-topic.',
   },
   ic_financing: {
     id: 'ic_financing', module: 'm_ic', type: 'text',
@@ -228,6 +228,6 @@ export const MODULE_QUESTION_ORDER: Record<string, string[]> = {
   m3: ['ra_q_floor_definition', 'ra_q_worse_than_floor'],
   m_enf: ['enf_q_cost_timing_bid', 'enf_q_delay_d_vs_a'],
   m4: ['ar_a_q_irr_moic', 'ar_a_q_sell_vs_hold', 'ar_b_q_wait_trackrecord', 'ar_b_q_execution_bridge', 'ar_c_q_rate_split', 'ar_c_q_high_rate_execution'],
-  m5: ['fin_q_leverage_mechanic', 'fin_q_release_liquidity', 'fin_q_neg_leverage_signals'],
+  m5: ['fin_q_leverage_mechanic', 'fin_q_release_liquidity'],
   m_ic: ['ic_bid_price', 'ic_target_irr', 'ic_thesis', 'ic_portfolio_analysis', 'ic_scenario_commentary', 'ic_financing', 'ic_risks', 'ic_recommendation'],
 };

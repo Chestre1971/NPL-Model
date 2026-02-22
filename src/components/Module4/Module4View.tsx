@@ -630,51 +630,51 @@ export function Module4View() {
       {/* Questions */}
       <div className="mt-6 bg-white border border-slate-200 rounded-xl p-5">
         <h4 className="text-sm font-semibold text-slate-700 mb-5">Questions</h4>
-        <QuestionBlock num="Q1" title="A-sale: IRR vs MoIC">
+        <QuestionBlock num="Q1" title="A-sale: value creation mechanism">
           <TextAnswerInput
             questionId="ar_a_q_irr_moic"
             module="m4"
-            label="A-sale: Why can selling A loans early raise IRR but reduce MoIC versus hold-to-maturity?"
+            label="In plain terms, how does selling A loans create value versus passive hold, and what is the core return trade-off?"
             rows={5}
           />
         </QuestionBlock>
-        <QuestionBlock num="Q2" title="A-sale: sell now vs hold">
+        <QuestionBlock num="Q2" title="A-sale: market-yield sensitivity">
           <TextAnswerInput
             questionId="ar_a_q_sell_vs_hold"
             module="m4"
-            label="A-sale: In what market conditions should Heron prefer sell-now versus hold?"
+            label="If buyer-required yields for performing CRE loans rise at the sale date, how should that affect A-loan sale proceeds, bid capacity, and returns?"
             rows={5}
           />
         </QuestionBlock>
-        <QuestionBlock num="Q3" title="B-cure: waiting period">
+        <QuestionBlock num="Q3" title="B-cure: why cure first, then sell">
           <TextAnswerInput
             questionId="ar_b_q_wait_trackrecord"
             module="m4"
-            label="B-cure: Why wait before selling re-performing B loans after cure?"
+            label="Why does the B-loan strategy require a cure step before re-performing sale, and what does that cure change economically?"
             rows={5}
           />
         </QuestionBlock>
-        <QuestionBlock num="Q4" title="B-cure: execution risk">
+        <QuestionBlock num="Q4" title="B-cure: execution failure modes">
           <TextAnswerInput
             questionId="ar_b_q_execution_bridge"
             module="m4"
-            label="B-cure: What is the key execution risk, and how would failure show up in the return bridge?"
+            label="What are the main execution risks in the B-cure strategy, and where would underperformance show up in the model outputs?"
             rows={5}
           />
         </QuestionBlock>
-        <QuestionBlock num="Q5" title="C-DPO: principal vs interest discounting">
+        <QuestionBlock num="Q5" title="C-DPO: why both sides agree">
           <TextAnswerInput
             questionId="ar_c_q_rate_split"
             module="m4"
-            label="C-DPO: Why are different discount rates often used for principal vs interest in DPO pricing?"
+            label="Why might both lender and borrower prefer a C-loan DPO to waiting for maturity or forcing enforcement?"
             rows={5}
           />
         </QuestionBlock>
-        <QuestionBlock num="Q6" title="C-DPO: higher-rate execution risk">
+        <QuestionBlock num="Q6" title="C-DPO: sensitivity and cycle risk">
           <TextAnswerInput
             questionId="ar_c_q_high_rate_execution"
             module="m4"
-            label="C-DPO: How does a higher-rate market reduce DPO execution probability, and what does that imply for underwriting?"
+            label="Which assumptions most drive C-loan DPO outcomes, and how would a weaker refinancing market change expected proceeds and timing?"
             rows={5}
           />
         </QuestionBlock>

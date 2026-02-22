@@ -1,5 +1,5 @@
 ﻿import { useApp } from '../../context/AppContext';
-import { FileText, TrendingUp, Building2, BookOpen, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { FileText, TrendingUp, Building2, BookOpen, ChevronRight } from 'lucide-react';
 import { PageShell } from '../shared/PageShell';
 
 function Section({ icon, title, children }: {
@@ -108,8 +108,7 @@ const moduleSteps = [
 ];
 
 export function Module0View() {
-  const { effectiveLoans, state, dispatch } = useApp();
-  const isComplete = state.modules.m0?.completed ?? false;
+  const { effectiveLoans } = useApp();
 
   return (
     <PageShell narrow>
@@ -332,20 +331,6 @@ export function Module0View() {
           </ul>
         </div>
       </Section>
-
-      <div className="mt-4 flex justify-end">
-        <button
-          onClick={() => dispatch({ type: 'MARK_COMPLETE', module: 'm0' })}
-          disabled={isComplete}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors
-            ${isComplete
-              ? 'bg-green-100 text-green-700 cursor-default'
-              : 'bg-blue-700 text-white hover:bg-blue-800'}`}
-        >
-          <CheckCircle2 size={15} />
-          {isComplete ? 'Completed' : 'Mark Complete'}
-        </button>
-      </div>
 
     </PageShell>
   );

@@ -540,19 +540,19 @@ export function Module3View() {
         </p>
 
         <div className="bg-white border border-slate-200 rounded-xl p-5">
-          <QuestionBlock num="Q1" title="Why this is the floor">
+          <QuestionBlock num="Q1" title="Recovery Shortfall and Bid Capacity">
             <TextAnswerInput
               questionId="ra_q_floor_definition"
               module="m3"
-              label="Why is Recovery Analysis described as the floor scenario, and what does that floor exclude?"
+              label="In plain terms, what is a recovery shortfall (when collateral does not fully cover loan balance), and why does that directly reduce the maximum price you can bid?"
               rows={5}
             />
           </QuestionBlock>
-          <QuestionBlock num="Q2" title="When realized returns can be worse">
+          <QuestionBlock num="Q2" title="Value Cycle Assumptions">
             <TextAnswerInput
               questionId="ra_q_worse_than_floor"
               module="m3"
-              label="Name three conditions under which realized returns could be worse than the modeled floor, and explain the mechanism briefly for each."
+              label="How does your collateral value-change assumption (rising, flat, or falling) affect forecast recovery, and how would bid/returns differ in a rising vs. falling real estate cycle?"
               rows={6}
             />
           </QuestionBlock>

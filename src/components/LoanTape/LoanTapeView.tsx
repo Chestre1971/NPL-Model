@@ -160,7 +160,6 @@ function EditPanel({
 //  Main view 
 export function LoanTapeView() {
   const { effectiveLoans, state, dispatch } = useApp();
-  const isComplete = state.modules.m1?.completed ?? false;
   const loanOverrides = state.loanOverrides;
 
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -424,19 +423,6 @@ export function LoanTapeView() {
         </div>
       </div>
 
-      <div className="mt-4 flex justify-end">
-        <button
-          onClick={() => dispatch({ type: 'MARK_COMPLETE', module: 'm1' })}
-          disabled={isComplete}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors
-            ${isComplete
-              ? 'bg-green-100 text-green-700 cursor-default'
-              : 'bg-blue-700 text-white hover:bg-blue-800'}`}
-        >
-          <Check size={15} />
-          {isComplete ? 'Completed' : 'Mark Complete'}
-        </button>
-      </div>
     </PageShell>
   );
 }

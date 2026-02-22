@@ -79,18 +79,18 @@ export function ICMemoView() {
         />
       </MemoCard>
 
-      {/*  3. Scenario Returns  */}
+      {/*  3. Outcome Range  */}
       <MemoCard>
         <SectionHeader
           number="03"
-          title="Scenario Returns"
-          subtitle="Write a brief commentary on the return progression and what it tells you about the value of active management."
+          title="Outcome Range and Value Creation"
+          subtitle="Take an open-ended view: quantify a plausible downside/base/upside range of outcomes, then explain what drives movement within that range and how active management changes the distribution."
         />
 
         <TextAnswerInput
           questionId="ic_scenario_commentary"
           module="m_ic"
-          label="Comment on the return progression across scenarios. What does the gap between Performing Baseline and Active Resolution tell you about the value of active management?"
+          label="Quantify a plausible range of outcomes (e.g., downside/base/upside for bid support and/or returns), and explain which active-resolution assumptions most influence where outcomes land in that range."
           rows={5}
         />
       </MemoCard>

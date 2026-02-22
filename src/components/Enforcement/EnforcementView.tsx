@@ -578,19 +578,19 @@ export function EnforcementView() {
         </p>
 
         <div className="bg-white border border-slate-200 rounded-xl p-5">
-          <QuestionBlock num="Q1" title="Cost sensitivity to valuation and IRR">
+          <QuestionBlock num="Q1" title="Why D-Loans Need Enforcement">
             <TextAnswerInput
               questionId="enf_q_cost_timing_bid"
               module="m_enf"
-              label="Set NJ costs to 12% and judicial costs to 20%. Quantitatively describe what happens to net D-loan recovery and explain how that flows into bid price/IRR."
+              label="Why do D-loans often require enforcement to resolve? In this scenario, what incentives (or lack of incentives) does the borrower have?"
               rows={6}
             />
           </QuestionBlock>
-          <QuestionBlock num="Q2" title="Why delay hurts D more than A">
+          <QuestionBlock num="Q2" title="Enforcement as Floor Case">
             <TextAnswerInput
               questionId="enf_q_delay_d_vs_a"
               module="m_enf"
-              label="Why does an 18-month enforcement delay hurt D-loans more than A-loans in this model?"
+              label="Why is enforcement treated as the base-case / worst-case path for D-loans, and why does it provide a floor starting point when setting the portfolio bid?"
               rows={5}
             />
           </QuestionBlock>

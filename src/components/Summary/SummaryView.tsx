@@ -431,19 +431,19 @@ export function SummaryView() {
             rows={5}
           />
         </QuestionBlock>
-        <QuestionBlock num="Q2" title="Risk of one-number IRR view">
+        <QuestionBlock num="Q2" title="IRR and MoIC Through Active Resolution">
           <TextAnswerInput
             questionId="sum_q_single_irr_risk"
             module="m1"
-            label="Why is it risky to present only one final IRR number without the bridge decomposition?"
+            label="Outline how IRR and MoIC change as active resolution strategies are layered in (A-sale, B-cure/re-sale, C-DPO), and explain why the two metrics can move differently."
             rows={5}
           />
         </QuestionBlock>
-        <QuestionBlock num="Q3" title="First downside sensitivity">
+        <QuestionBlock num="Q3" title="MoIC 1.5x Target: Strategy Adjustment">
           <TextAnswerInput
             questionId="sum_q_sensitivity_first"
             module="m1"
-            label="If you changed one assumption for a downside stress test, which would you test first and why?"
+            label="If Heron must achieve at least a 1.5x MoIC on this portfolio, what different active-resolution approach (or mix of approaches) could help reach that target, and why?"
             rows={5}
           />
         </QuestionBlock>

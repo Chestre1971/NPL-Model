@@ -133,11 +133,11 @@ export function Module2View() {
               rows={5}
             />
           </QuestionBlock>
-          <QuestionBlock num="Q2" title="Timing vs IRR">
+          <QuestionBlock num="Q2" title="Export and Explain Returns">
             <TextAnswerInput
               questionId="pb_q_timing_vs_irr"
               module="m2"
-              label="Explain why two scenarios with similar total cash can still have very different IRRs."
+              label="Export the CSV above and report the portfolio IRR, MoIC, and profit. Then explain why the IRR differs from the coupon rate."
               rows={5}
             />
           </QuestionBlock>

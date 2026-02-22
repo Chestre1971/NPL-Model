@@ -603,19 +603,11 @@ export function Module5View() {
               rows={5}
             />
           </QuestionBlock>
-          <QuestionBlock num="Q2" title="Release pricing and liquidity">
+          <QuestionBlock num="Q2" title="Release Price vs Advance Rate">
             <TextAnswerInput
               questionId="fin_q_release_liquidity"
               module="m5"
-              label="Why can release pricing create equity stress even when portfolio-level returns look acceptable?"
-              rows={5}
-            />
-          </QuestionBlock>
-          <QuestionBlock num="Q3" title="Early negative-leverage signals">
-            <TextAnswerInput
-              questionId="fin_q_neg_leverage_signals"
-              module="m5"
-              label="At a high level, how do you detect approaching negative leverage before it is visible in final IRR outputs?"
+              label="Why is it important for Loan-on-Loan financing to have a release price above the advance rate (as a % of APP) for each loan?"
               rows={5}
             />
           </QuestionBlock>
